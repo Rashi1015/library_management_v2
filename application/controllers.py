@@ -1,12 +1,10 @@
 from flask import Flask, render_template, redirect, request
 from flask import current_app as app 
+from .models import *
 
 sample_data=[{"username":"shivansh", "password":"vani1015","section":'mathematics', "date":"02/02/2004", "description":"master blaster"}]
-sections = [
-        {'section': 'Section 1', 'date': '2022-01-01', 'description': 'Description of section 1'},
-        {'section': 'Section 2', 'date': '2022-01-02', 'description': 'Description of section 2'},
-        # Add more section data as needed
-    ]
+
+
 @app.route("/userlogin", methods=["GET", "POST"])
 def user_login():
     if request.method=="POST":
