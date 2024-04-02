@@ -1,0 +1,17 @@
+#main, #canvas{width:80%;
+    margin:auto; height:700px;}
+    
+#form-body{border:1px solid grey;
+        width: 300px;
+        height: 180px;
+        margin:auto;
+        margin-top: 100px;
+        margin-bottom:80px;
+        padding: 10px;
+        border-radius: 10px;}
+    
+.headings{ font-size: 20px;
+        margin:20px ;
+        padding-left:0px;}
+    
+    
