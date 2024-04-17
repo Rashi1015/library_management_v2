@@ -1,9 +1,20 @@
 from flask import Flask 
 from application.database import db
 
+#login_manager = LoginManager()
+#@login_manager.user_loader
+#def load_user(user_id):
+    #return User.query.get(int(user_id))
+
+
+
+
 app=None 
 def  create_app():
     app=Flask(__name__)
+    #login_manager = LoginManager(app)
+    app.config['SECRET_KEY']= b'_5#y2L"F4Q8z\n\xec]/'
+    #app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
     app.debug=True
     app.config["SQLALCHEMY_DATABASE_URI"]="sqlite:///lmsdata.sqlite3"
     db.init_app(app)

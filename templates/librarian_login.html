@@ -11,18 +11,19 @@
         <div id="canvas">
             <div id="form-body">
                 <h1>Librarian Login</h1>
+                <form action="/librarianlogin" method="post">
                     <div class="mb-3">
                          <label for="exampleFormControlInput1" class="form-label">Username </label>
-                         <input type="text" class="form-control" id="exampleFormControlInput1" placeholder="username123">
+                         <input type="text" class="form-control" id="exampleFormControlInput1" placeholder="username123" name="username">
                     </div>
                     <div class="mb-3">
                          <label for="exampleFormControlTextarea1" class="form-label">Password</label>
-                         <input type="password" class="form-control" id="exampleFormControlTextarea1">
+                         <input type="password" class="form-control" id="exampleFormControlTextarea1" name="password">
                     </div>
                     <div style="text-align: center;">
                     <a href="/librariandashboard" class="btn btn-primary">Login</a>
                     </div>
-                   
+                </form>
                     
 
             </div>

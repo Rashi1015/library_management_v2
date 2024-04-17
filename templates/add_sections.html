@@ -14,6 +14,13 @@
                       
                       <div class="collapse navbar-collapse" id="navbarSupportedContent">
                         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+                          <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="#">Books</a>
+                        
+                          <li class="nav-item">
+                            <a class="nav-link" href="/librarianbooks">Requests</a>
+                          </li>
                           
                           <li class="nav-item">
                             <a class="nav-link" href="#">Stats</a>
@@ -30,21 +37,75 @@
                       </div>
                     </div>
                   </nav>
-                <h2 class="headings"> Add Sections to view </h2>
-                
-                <div id="form-body">
-                  <div class="ms-2" style="font-size: larger;">{{section}}</div>
-                  <div class="ms-2" style="font-size: larger;">{{date}}</div>
-                  <div class="ms-2 "style="font-size: larger;"> {{description}} </div>
-            
-                  <div style="text-align: center">
-                  <a href="/bookmanagement" type="button" class="btn btn-warning">Add Book</a>
-                  </div>
-                </div>
-               
+                  
+                  <h2 class="headings"> Add Sections to view </h2>
 
-                <div style="text-align: center;"> 
-                <a href="/sectionmanagement" type="button" class="btn btn-outline-success">Add</a>
+                 
+                  <div id="existing-sections" class="flex-container">
+                      {% for section in sections %}
+                    <a href="/bookdetails?section_id={{ section.id }}" class="section-link">
+                    <div id="form-body">
+                      
+                      <div class="ms-2" style="font-size: larger;">Section : {{ section.name }}</div> </a>
+                      <div class="ms-2" style="font-size: larger;">Date created : {{ section.date_created }}</div>
+                      <div class="ms-2" style="font-size: larger;">Description : {{ section.description }} </div>
+                      <div class="addbook" >
+                      <div class="d-flex justify-content-between">
+                        <form action="/edit_section_page" method="get">
+                        <input type="hidden" name="section_id" value="{{ section.id }}">
+                        <button type="submit" class="btn btn-dark">Edit</button>
+                        </form>
+                        <form action="/addsections" method="post">
+                          <input type="hidden" name="section_id" value="{{ section.id }}">
+                          <button type="submit" class="btn btn-warning">Add Book</button>
+                          </form>
+                        <form action="/delete_section" method="post" onsubmit="return confirm('Are you sure you want to delete this section?');">
+                          <input type="hidden" name="section_id" value="{{ section.id }}">
+                          <button type="submit" class="btn btn-danger">Delete</button>
+                      </form>
+                      </div>
+                      </div>
+                 
+                  </div>
+                  {% endfor %}
+                </div>
+                
+                  
+                      <div id="existing-sections" class="flex-container">
+                      {% if section_name %}
+                      <a href="/bookdetails?section_id={{ section.id }}" class="section-link">
+                    <div id="form-body">
+                      <div class="ms-2" style="font-size: larger;">Section : {{ section_name }}</div> </a>
+                      <div class="ms-2" style="font-size: larger;">Date created : {{ date }}</div>
+                      <div class="ms-2" style="font-size: larger;">Description : {{ description }} </div>
+                      
+                      <div class="addbook" >
+                      <div class="d-flex justify-content-between">
+                          <form action="/edit_section_page" method="get">
+                          <input type="hidden" name="section_id" value="{{ section.id }}">
+                          <button type="submit" class="btn btn-dark">Edit</button>
+                          </form>
+                          <form action="/delete_section" method="post" onsubmit="return confirm('Are you sure you want to delete this section?');">
+                            <input type="hidden" name="section_id" value="{{ section.id }}">
+                            <button type="submit" class="btn btn-danger">Delete</button>
+                        </form>
+                        <form action="/addsections" method="post">
+                          <input type="hidden" name="section_id" value="{{ section.id }}">
+                          <button type="submit" class="btn btn-warning">Add Book</button>
+                        </form>
+                      </div>
+                      
+    
+                       
+                      </div>
+                    </div>
+                      {% endif %}
+                    </div>
+              
+                  
+
+                <div style="text-align: center;">
+                <a href="/sectionmanagement" type="button" class="btn btn-outline-success">Add+</a>
                 </div>     
               </div>  
        </div> 

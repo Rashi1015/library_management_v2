@@ -10,31 +10,33 @@
     <div id="main">
         <div id="canvas">
             <div id="form-body">
-                <h1>Register Form </h1>
-                    <div class="mb-3">
-                         <label for="exampleFormControlInput1" class="form-label">Username </label>
-                         <input type="text" class="form-control" id="exampleFormControlInput1" placeholder="username123" required>
-                    </div>
-                    <div class="mb-3">
-                         <label for="exampleFormControlTextarea1" class="form-label">Password</label>
-                         <input type="password" class="form-control" id="exampleFormControlTextarea1" required>
-                    </div>
-                    <div style="text-align: center;">
-                    <a href='/userdashboard' type="Submit" class="btn btn-primary">Register</a>
-                    </div>
-                    <div  style="text-align: center; margin-top: 20px;">
-                    ---Already registered?---<br>
-                    <a href="/userlogin" class="btn btn-warning"> Login </a>
+                <h1>Register Form</h1>
+                <form action="/userregister" method="post"> 
+                <div class="mb-3">
+                     <label for="username" class="form-label">Username </label>
+                     <input type="text" class="form-control" id="username" placeholder="Username123" name="username" required>
+                </div>
+                <div class="mb-3">
+                     <label for="pwd" class="form-label">Password</label>
+                     <input type="password" class="form-control" id="pwd" name="password" required>
+                </div>
+                <div style="text-align: center;">
+                <input type="Submit" class="btn btn-primary" value="Register">
+                </div>
+                </form>
+        
+                <div  style="text-align: center; margin-top: 20px;">
+                ---Already registered?---<br>
+                <a href="/userlogin" class="btn btn-warning"> Login </a>
                     
-                    </div>
+                </div>
                     
 
             </div>
 
         </div>
-
     </div>
-    
+
 </body>
 </html>
 

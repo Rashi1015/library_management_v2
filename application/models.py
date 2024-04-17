@@ -1,12 +1,14 @@
 from .database import db
 from datetime import datetime, timedelta
 
+#from flask_login import UserMixin
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(80), nullable=False)
-    role = db.Column(db.String(20), nullable=False)  # 'admin' or 'user'
+    role = db.Column(db.String(20), nullable=False, default="general")  # 'admin' or 'user'
+    #request = db.relationship('Request', backref=db.backref('requests', lazy=True))
 
 class Section(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -21,8 +23,8 @@ class Book(db.Model):
     name = db.Column(db.String(100), nullable=False)
     content = db.Column(db.Text, nullable=False)
     author = db.Column(db.String(100), nullable=False)
-    date_issued = db.Column(db.DateTime, nullable=True)
-    return_date = db.Column(db.DateTime, nullable=True)
+    date_issued= db.Column(db.DateTime, nullable=True)
+    #return_date = db.Column(db.DateTime, nullable=True)
     section_id = db.Column(db.Integer, db.ForeignKey('section.id'), nullable=False)
     section = db.relationship('Section', backref=db.backref('books', lazy=True))
 
@@ -31,27 +33,18 @@ class Book(db.Model):
 class Request(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    user = db.relationship('User', backref=db.backref('requests', lazy=True))
     book_id = db.Column(db.Integer, db.ForeignKey('book.id'), nullable=False)
     book = db.relationship('Book', backref=db.backref('requests', lazy=True))
     request_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     return_date = db.Column(db.DateTime, nullable=False)
-    status = db.Column(db.String(20), nullable=False, default='requested')  # 'pending', 'approved', 'rejected'
+    user = db.relationship('User', backref=db.backref('requests', lazy=True))
+    status = db.Column(db.String(20), nullable=False, default='requested')  # 'issued', 'paid', 'rejected'
 
     @staticmethod
     def get_default_return_date():
         # Set the default return date to 7 days from the request date
         return datetime.utcnow() + timedelta(days=7)
 
-
-class Action(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    librarian_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    librarian = db.relationship('User', backref=db.backref('actions', lazy=True))
-    request_id = db.Column(db.Integer, db.ForeignKey('request.id'), nullable=False)
-    request = db.relationship('Request', backref=db.backref('actions', lazy=True))
-    action_date = db.Column(db.DateTime, nullable=False)
-    action_type = db.Column(db.String(20), nullable=False)  # 'grant', 'revoke', 'reject'
 
 class Feedback(db.Model):
     id = db.Column(db.Integer, primary_key=True)

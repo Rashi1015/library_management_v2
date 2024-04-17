@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+       <title>Librarian Dashboard</title>
+       <link rel="stylesheet" href="static/bookdetails.css">
+       <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    </head>
+    <body> 
+        <div id="main">
+            <div id ="canvas">
+                <nav class="navbar navbar-expand-lg bg-body-tertiary">
+                    <div class="container-fluid">
+                      <a class="navbar-brand" href="#">Librarian Dashboard</a>
+                      
+                      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+                          <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="#">Books</a>
+                        
+                          <li class="nav-item">
+                            <a class="nav-link" href="/librarianbooks">Requests</a>
+                          </li>
+                          
+                          <li class="nav-item">
+                            <a class="nav-link" href="#">Stats</a>
+                          </li>
+                          
+                          <li class="nav-item">
+                            <a class="nav-link" href="/templates/librarian_login.html">Logout</a>
+                          </li>
+                        </ul>
+                        <form class="d-flex" role="search">
+                          <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+                          <button class="btn btn-outline-info" type="submit">Search</button>
+                        </form>
+                      </div>
+                    </div>
+                  </nav>
+                  
+                  <h2 class="headings"> Section : {{section.name}} </h2>
+
+                 
+                  <div id="existing-books" class="flex-container">
+                      {% for book in books %}
+                    <div id="form-body">
+                      <div class="ms-2" style="font-size: larger;">Book Title: {{ book.name }}</div>
+                      <div class="ms-2" style="font-size: larger;">Date created : {{ book.date_issued }}</div>
+                      <div class="ms-2" style="font-size: larger;">Author : {{ book.author }} </div>
+                      <div class="d-flex justify-content-between">
+                        <form action="/edit_book_page" method="get">
+                        <input type="hidden" name="book_id" value="{{ book.id }}">
+                        <input type="hidden" name="section_id" value="{{ book.section_id }}">
+                        <button type="submit" class="btn btn-dark">Edit</button>
+                        </form>
+                        <form action="/delete_book" method="post" onsubmit="return confirm('Are you sure you want to delete this book?');">
+                          <input type="hidden" name="book_id" value="{{ book.id }}">
+                          <input type="hidden" name="section_id" value="{{ book.section_id }}">
+                          <button type="submit" class="btn btn-danger">Delete</button>
+                      </form>
+                    
+                    </div>
+                      
+                    </div>
+                      {% endfor %}
+                  </div>
+                  
+                      <div id="existing-sections" class="flex-container">
+                      {% if book_name %}
+                    <div id="form-body">
+                      <div class="ms-2" style="font-size: larger;">Book : {{ book_name }}</div>
+                      <div class="ms-2" style="font-size: larger;">Date created : {{ book.date_issued }}</div>
+                      <div class="ms-2" style="font-size: larger;">Author : {{ book.author }} </div>
+                      <div class="d-flex justify-content-between">
+                        <form action="/edit_book_page" method="get">
+                        <input type="hidden" name="book_id" value="{{ book.id }}">
+                        <input type="hidden" name="section_id" value="{{book.section_id }}">
+                        <button type="submit" class="btn btn-dark">Edit</button>
+                        </form>
+                        <form action="/delete_book" method="post" onsubmit="return confirm('Are you sure you want to delete this book?');">
+                          <input type="hidden" name="book_id" value="{{book.id }}">
+                          
+                          <button type="submit" class="btn btn-danger">Delete</button>
+                      </form>
+                
+                    </div>
+                      
+                    </div>
+                      {% endif %}
+                    </div>
+              
+                <div style="text-align: center">
+                    <a href="/bookmanagement" type="button" class="btn btn-warning">Add+</a>
+                </div>  
+              </div>  
+       </div> 
+       <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+       <script src="{{ url_for('static', filename='script.js') }}"></script>            
+    </body>
+  </html>                
+                        
+                   
+                    
+                   
+                
+
+                
