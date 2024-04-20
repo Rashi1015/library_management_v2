@@ -1,14 +1,13 @@
 from .database import db
 from datetime import datetime, timedelta
 
-#from flask_login import UserMixin
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(80), nullable=False)
     role = db.Column(db.String(20), nullable=False, default="general")  # 'admin' or 'user'
-    #request = db.relationship('Request', backref=db.backref('requests', lazy=True))
+   
 
 class Section(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -24,7 +23,6 @@ class Book(db.Model):
     content = db.Column(db.Text, nullable=False)
     author = db.Column(db.String(100), nullable=False)
     date_issued= db.Column(db.DateTime, nullable=True)
-    #return_date = db.Column(db.DateTime, nullable=True)
     section_id = db.Column(db.Integer, db.ForeignKey('section.id'), nullable=False)
     section = db.relationship('Section', backref=db.backref('books', lazy=True))
 

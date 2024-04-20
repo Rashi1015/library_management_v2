@@ -1,13 +1,23 @@
-from flask import Flask, render_template, redirect, request, flash
+from flask import Flask, render_template, redirect, request, flash, url_for
 from flask import current_app as app 
 from .models import *
 from flask import request, session
 import pdfkit
+from flask import make_response
+from sqlalchemy import func, or_
 
-config = pdfkit.configuration(wkhtmltopdf=r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf')
-pdfkit.from_file('input.html', 'output.pdf', configuration=config)
 
-from flask import session, redirect, url_for
+
+config = pdfkit.configuration(wkhtmltopdf=r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe')
+
+def raw(text):
+    split_list =text.split()
+    search_word=""
+    for word in split_list:
+        search_word += word.lower()
+    return search_word
+
+    
 
 @app.route('/logout')
 def logout():
@@ -55,15 +65,11 @@ def user_login():
 @app.route("/userdashboard", methods=["GET", "POST"])
 def user_dashboard():
     
-    book_id = request.form.get('book_id')
     username=session.get("username")
     user_id = session.get('user_id')
-    if request.method == "POST":
-        
-        if user_id is None:
-            flash('User not logged in.', 'error')
-            return redirect('/userlogin')
+    book_id = request.form.get('book_id')
     
+    if request.method == "POST":
         new_request = Request( 
             user_id = user_id, 
             book_id = book_id, 
@@ -72,8 +78,105 @@ def user_dashboard():
         db.session.add(new_request)
         db.session.commit()
         flash('Book request submitted successfully.', 'success')
-        return redirect('/user/' + str(user_id))
+        return redirect('/userbooks')
     return render_template('user_dashboard.html', username=username, user_id=user_id, book_id=book_id)
+
+
+
+@app.route('/usersearch')
+def text_search():
+    
+    search_word = request.args.get("search_word")
+    search_word = "%" + search_word + "%"
+    books_by_name = Book.query.filter(Book.name.like(search_word)).all()
+    books_by_author = Book.query.filter(Book.author.like(search_word)).all()
+    books_by_section = Book.query.join(Section).filter(Section.name.like(f'%{search_word}%')).all()
+    books = books_by_name + books_by_author + books_by_section # Remove duplicates
+    return render_template('user_search.html', books=books)
+
+
+
+@app.route("/userbooks", methods=["GET", "POST"])
+def user_books():
+    if 'user_id' not in session:
+        flash('User not logged in.', 'error')
+        return redirect('/userlogin')
+    
+    user_id = session.get('user_id')
+    username = session.get("username")
+
+    requested_books = Request.query.filter_by(user_id=user_id, status="requested").all()
+    rejected_books = Request.query.filter_by(user_id=user_id, status="rejected").all()
+    issued_books = Request.query.filter_by(user_id=user_id, status="issued").all()
+    paid_books = Request.query.filter_by(user_id=user_id, status="paid").all()
+
+    requested_books_details = []
+    issued_books_details = []
+    paid_books_details = []
+
+    for request in requested_books:
+        book = request.book
+        section = book.section
+        status = request.status
+        requested_books_details.append({
+            'book_id': book.id,
+            'book_title': book.name,
+            'author': book.author,
+            'section': section.name,
+            "status": status
+        })
+
+    for request in rejected_books:
+        book = request.book
+        section = book.section
+        status = request.status
+        requested_books_details.append({
+            'book_id': book.id,
+            'book_title': book.name,
+            'author': book.author,
+            'section': section.name,
+            "status": status
+        })
+
+    for request in issued_books:
+        book = request.book
+        section = book.section
+        issued_books_details.append({
+            'book_id': book.id,
+            'book_title': book.name,
+            'author': book.author,
+            'section': section.name
+        })
+
+    for request in paid_books:
+        book = request.book
+        section = book.section
+        paid_books_details.append({
+            'book_id': book.id,
+            'book_title': book.name,
+            'author': book.author,
+            'section': section.name
+        })
+
+    return render_template('user_books.html', requested_books=requested_books_details, 
+                           username=username, issued_books=issued_books_details, 
+                           paid_books=paid_books_details, user_id=user_id)
+
+@app.route("/userstats", methods=["GET", "POST"])
+def user_stats():
+    user_id = session.get('user_id')
+
+    requested_count = Request.query.filter_by(user_id=user_id, status="requested").count()
+    rejected_count = Request.query.filter_by(user_id=user_id, status="rejected").count()
+    issued_count = Request.query.filter_by(user_id=user_id, status="issued").count()
+    paid_count = Request.query.filter_by(user_id=user_id, status="paid").count()
+
+    # Render the template with the statistics
+    return render_template('user_stats.html', user_id=user_id,
+                           requested_count=requested_count, rejected_count=rejected_count,
+                           issued_count=issued_count, paid_count=paid_count)
+
+
 
 
 @app.route("/userregister", methods=["GET", "POST"])
@@ -221,7 +324,6 @@ def book_management():
     return render_template("book_management.html", books=books, section_id=section_id)
 
 
-
 @app.route("/librarianlogin", methods=["GET", "POST"])
 def librarian_login():
     if request.method=="POST":
@@ -230,8 +332,15 @@ def librarian_login():
         librarian = User.query.filter_by(username=username, password=password, role="admin").first()
       
         if librarian:
-            session['librarian_id'] = librarian.id
-            return redirect("/librariandashboard") 
+            if librarian.password == password:
+                session['librarian_id'] = librarian.id
+                session['username'] = librarian.username
+                session['logged_in'] = True
+                return redirect("/librariandashboard")
+            else:
+                return "incorrect Password" 
+        else:
+            return "Librarian does not Exist!"
     return render_template('librarian_login.html')
 
 @app.route("/librariandashboard", methods=["GET", "POST"])
@@ -241,7 +350,8 @@ def librarian_dashboard():
 
 @app.route("/librarianbooks", methods=["GET", "POST"])
 def librarian_books():
-    librarian=User.query.filter_by(role="admin").first()
+    
+    librarian=User.query.filter_by(role="admin" ).first()
     requested_books = Request.query.filter_by(status="requested").all()
     issued_books = Request.query.filter_by(status="issued").all()
     
@@ -249,81 +359,64 @@ def librarian_books():
     issued_books_details = []
 
     for request in requested_books:
-        #user = request.user
-        book = request.book
-        section = book.section
-        requested_books_details.append({
-            "request_id":request.id,
-            "book_id":book.id,
-            'user':request.user.id,
-            'book_title': book.name,
-            'section': section.name})
+    
+            book = request.book
+            section = book.section
+            requested_books_details.append({
+                "request_id": request.id,
+                "book_id": book.id,
+                "user": request.user_id,
+                "book_title": book.name,
+                "section": section.name})
     for request in issued_books:
-        book = request.book
-        section = book.section
-        issued_books_details.append({
-            "request_id":request.id,
-            "book_id":book.id,
-            'user': request.user.id,
-            'book_title': book.name,
-            'section': section.name})
+    
+            book = request.book
+            section = book.section
+            issued_books_details.append({
+                "request_id": request.id,
+                "book_id": book.id,
+                "user": request.user_id,
+                "book_title": book.name,
+                "section": section.name})
     return render_template('librarian_books.html', requested_books=requested_books_details,
-     issued_books=issued_books_details,librarian=librarian)
+                           issued_books=issued_books_details, librarian=librarian)
 
-@app.route("/userbooks", methods=["GET", "POST"])
-def user_books():
-    user_id = session.get('user_id')
-    username=session.get("username")
-    requested_books = Request.query.filter_by(status="requested").all()
-    rejected_books = Request.query.filter_by(status="rejected").all()
-    issued_books = Request.query.filter_by(status="issued").all()
-    paid_books = Request.query.filter_by(status="paid").all()
+
+
+@app.route('/librariansearch')
+def text_search_L():
     
-    requested_books_details = []
-    issued_books_details = []
-    paid_books_details=[]
+    search_word = request.args.get("search_word")
+    search_word = "%" + search_word + "%"
+    
+    # Search requests by book name
+    requests_by_name = Request.query \
+        .join(Book) \
+        .filter(Book.name.like(f'%{search_word}%')) \
+        .filter(or_(Request.status == 'requested', Request.status == 'issued')) \
+        .all()
+    
+    # Search requests by section name
+    requests_by_section = Request.query \
+        .join(Book) \
+        .join(Section) \
+        .filter(Section.name.like(f'%{search_word}%')) \
+        .filter(or_(Request.status == 'requested', Request.status == 'issued')) \
+        .all()
 
-    for request in requested_books:
-        
-        book = request.book
-        section = book.section
-        status = request.status
-        requested_books_details.append({
-            'book_id': book.id,
-            'book_title': book.name,
-            'author':book.author,
-            'section': section.name,
-            "status": status})
-    for request in rejected_books:
-        
-        book = request.book
-        section = book.section
-        status = request.status
-        requested_books_details.append({
-            'book_id': book.id,
-            'book_title': book.name,
-            'author':book.author,
-            'section': section.name,
-            "status": status})
-    for request in issued_books:
-        book = request.book
-        section = book.section
-        issued_books_details.append({
-            'book_id': book.id,
-            'book_title': book.name,
-            'author':book.author,
-            'section': section.name})
-    for request in paid_books:
-        book = request.book
-        section = book.section
-        paid_books_details.append({
-            'book_id': book.id,
-            'book_title': book.name,
-            'author':book.author,
-            'section': section.name})
-    return render_template('user_books.html', requested_books=requested_books_details,username=username,
-     issued_books=issued_books_details,paid_books=paid_books_details, user_id=user_id, status=status)
+    # Combine and remove duplicates
+    requests = requests_by_name + requests_by_section
+    
+    return render_template('librarian_search.html', requests=requests)
 
+
+@app.route("/librarianstats")
+def librarian_stats():
+    
+    requested_count = Request.query.filter_by(status="requested").count()
+    issued_count = Request.query.filter_by(status="issued").count()
+
+    return render_template('librarian_stats.html', requested_count=requested_count, issued_count=issued_count)
 
 @app.route("/payment", methods=["GET", "POST"])
 def payment():
@@ -430,29 +523,24 @@ def revoke_request(request_id):
     if request.method == "POST":
         request_to_revoke = Request.query.get(request_id)
         if request_to_revoke:
-            db.session.delete(request_to_revoke)
-            db.session.commit()
-            flash("Request revoked successfully", "success")
+            if datetime.utcnow() > request_to_revoke.return_date:
+                db.session.delete(request_to_revoke)
+                db.session.commit()
+               
+            else:
+                db.session.delete(request_to_revoke)
+                db.session.commit()
+                flash("Request revoked successfully", "success")
         else:
             flash("Request not found", "error")
         return redirect("/librarianbooks")
 
-import pdfkit
-
-#@app.route("/generate_pdf")
-#def generate_pdf():
-    #book_id = request.args.get("book_id")
-    #book = Book.query.get_or_404(book_id)
-    #rendered_html = render_template("book_content.html", book=book)
-    #pdf_filename = f"{book.name}.pdf"
-   #pdfkit.from_string(rendered_html, pdf_filename)
-    #return send_file(pdf_filename, attachment_filename=pdf_filename, as_attachment=True)
 @app.route("/generate_pdf")
 def generate_pdf():
     book_id = request.args.get("book_id")
     book = Book.query.get_or_404(book_id)
-    rendered_html = render_template("book_content.html", book=book)
-    pdf = pdfkit.from_string(rendered_html, False)
+    rendered_html = render_template("view_pdf.html", book=book)
+    pdf = pdfkit.from_string(rendered_html, False, configuration=pdfkit.configuration(wkhtmltopdf=r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'))
     response = make_response(pdf)
     response.headers['Content-Type'] = 'application/pdf'
     response.headers['Content-Disposition'] = f'attachment; filename={book.name}.pdf'

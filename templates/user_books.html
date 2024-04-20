@@ -18,10 +18,10 @@
                             <a class="nav-link" aria-current="page" href="{{ url_for('user', user_id=user_id) }}">Books</a>
                           </li> 
                           <li class="nav-item">
-                            <a class="nav-link active" href="#">My Books</a>
+                            <a class="nav-link active" href="/userbooks">My Books</a>
                           </li>
                           <li class="nav-item">
-                            <a class="nav-link" href="#">Stats</a>
+                            <a class="nav-link" href="userstats">Stats</a>
                           </li>
                           
                           <li class="nav-item">
@@ -29,14 +29,12 @@
                           </li>
                         </ul>
                         <div class="d-flex align-items-center">
-                          <form class="d-flex" role="search">
-                              <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+                          <form class="d-flex" role="search" action="/usersearch" method="GET">
+                              <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="search_word">
                               <button class="btn btn-outline-info" type="submit">Search</button>
                           </form>
                           <div class="ms-2">{{ username }}</div>
-                          
                       </div>
-                      
                       </div>
                     </div>
                   </nav>

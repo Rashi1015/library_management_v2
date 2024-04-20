@@ -14,9 +14,9 @@
                       
                       <div class="collapse navbar-collapse" id="navbarSupportedContent">
                         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                          <li class="nav-item">
-                            <a class="nav-link active" aria-current="page" href="#">Books</a>
-                          </li> 
+                            <li class="nav-item">
+                                <a class="nav-link" aria-current="page" href="/userdashboard">Books</a>
+                              </li> 
                           <li class="nav-item">
                             <a class="nav-link" href="/userbooks">My Books</a>
                           </li>
@@ -28,19 +28,12 @@
                             <a class="nav-link" href="/logout">Logout</a>
                           </li>
                         </ul>
-                        <div class="d-flex align-items-center">
-                          <form class="d-flex" role="search" action="/usersearch" method="GET">
-                              <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="search_word">
-                              <button class="btn btn-outline-info" type="submit">Search</button>
-                          </form>
-                          <div class="ms-2">{{ username }}</div>
-                        </div>
+                        
                       </div>
                     </div>
                   </nav>
-                  <form action="/userdashboard" method="post">
-                    <input type="hidden" name="user_id" value="{{ user_id }}">
-  
+                  
+                  <h3>Search Results</h3>
                     <table class="table">
                         <thead>
                             <tr>
@@ -48,26 +41,25 @@
                                 <th scope="col">Book Title</th>
                                 <th scope="col">Author</th>
                                 <th scope="col">Section</th>
-                                <th scope="col">Action</th>
+                                
                             </tr>
                         </thead>
                         <tbody class="table-group-divider">
-                            {% for book_detail in book_details %}
+                            {% for book in books %}
                             <tr>
                                 <th scope="row">{{ loop.index }}</th>
-                                <td>{{ book_detail.name }}</td>
-                                <td>{{ book_detail.author }}</td>
-                                <td>{{ book_detail.section }}</td>
-                                <td>
-                                  <button type="submit" class="btn btn-success" name="book_id" value="{{ book_detail.id }}">Request</button>
-                                </td>
+                                <td>{{ book.name }}</td>
+                                <td>{{ book.author }}</td>
+                                <td>{{ book.section.name }}</td>
+                                
                             </tr>
                             {% endfor %}
                         </tbody>
-                      </table>
-                    </form>
+                    </table>
+               
   
             </div>
         </div>
     </body>
 </html>
+
