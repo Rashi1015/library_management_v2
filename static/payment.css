@@ -1,0 +1,21 @@
+#canvas{width:80%;
+    margin:auto; height:700px;}
+    
+#form-body{border:1px solid grey;
+           width:270px;
+           height:240px;
+           margin:auto;
+           margin-top: 150px;
+           padding: 10px;
+           border-radius: 10px;}
+    
+.headings{ font-size: 25px;
+        margin:5px ;
+        margin-top:0px;
+        margin-bottom:14px;
+        padding-left:0px;}
+    
+.pay-container {
+        margin-top: 30px;}
+    
+    
