@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, request, flash, url_for
+from flask import Flask, render_template, redirect, flash, url_for
 from flask import current_app as app 
 from .models import *
 from flask import request, session
