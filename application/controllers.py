@@ -382,9 +382,29 @@ def librarian_books():
                            issued_books=issued_books_details, librarian=librarian)
 
 
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    if request.method == 'POST':
+        search_word = request.form.get('search_word', '')
+        return redirect(url_for('search_results', search_word=search_word))
+    return render_template('librarian_books.html')  # Render your main dashboard template
 
-@app.route('/librariansearch')
-def text_search_L():
+@app.route('/search_results')
+def search_results():
+    search_word = request.args.get('search_word', '')
+    
+    # Perform search across relevant entities (example: User, Book, etc.)
+    users = User.query.filter(User.username.ilike(f'%{search_word}%')).all()
+    books = Book.query.filter(Book.name.ilike(f'%{search_word}%')).all()
+    sections = Section.query.filter(Section.name.ilike(f'%{search_word}%')).all()
+    requests = Request.query.filter(Request.status == 'requested').all()  # Example filter condition
+    
+    return render_template('search_results.html', users=users, books=books, sections=sections, requests=requests, search_word=search_word)
+
+
+
+#@app.route('/librariansearch')
+#def text_search_L():
     
     search_word = request.args.get("search_word")
     search_word = "%" + search_word + "%"
