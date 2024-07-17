@@ -95,7 +95,6 @@ def text_search():
     return render_template('user_search.html', books=books)
 
 
-
 @app.route("/userbooks", methods=["GET", "POST"])
 def user_books():
     if 'user_id' not in session:
@@ -104,20 +103,47 @@ def user_books():
     
     user_id = session.get('user_id')
     username = session.get("username")
+    
+    search_word = request.args.get('search_word', '')
 
-    requested_books = Request.query.filter_by(user_id=user_id, status="requested").all()
-    rejected_books = Request.query.filter_by(user_id=user_id, status="rejected").all()
-    issued_books = Request.query.filter_by(user_id=user_id, status="issued").all()
-    paid_books = Request.query.filter_by(user_id=user_id, status="paid").all()
+    if search_word:
+        requested_books = Request.query.filter(
+            Request.user_id == user_id,
+            Request.status.in_(['requested', 'rejected']),
+            (Request.book.has(Book.name.ilike(f'%{search_word}%')) |
+             Request.book.has(Book.author.ilike(f'%{search_word}%')) |
+             Request.book.has(Book.section.has(Section.name.ilike(f'%{search_word}%'))))
+        ).all()
+
+        issued_books = Request.query.filter(
+            Request.user_id == user_id,
+            Request.status == 'issued',
+            (Request.book.has(Book.name.ilike(f'%{search_word}%')) |
+             Request.book.has(Book.author.ilike(f'%{search_word}%')) |
+             Request.book.has(Book.section.has(Section.name.ilike(f'%{search_word}%'))))
+        ).all()
+
+        paid_books = Request.query.filter(
+            Request.user_id == user_id,
+            Request.status == 'paid',
+            (Request.book.has(Book.name.ilike(f'%{search_word}%')) |
+             Request.book.has(Book.author.ilike(f'%{search_word}%')) |
+             Request.book.has(Book.section.has(Section.name.ilike(f'%{search_word}%'))))
+        ).all()
+    else:
+        requested_books = Request.query.filter_by(user_id=user_id, status="requested").all()
+        rejected_books = Request.query.filter_by(user_id=user_id, status="rejected").all()
+        issued_books = Request.query.filter_by(user_id=user_id, status="issued").all()
+        paid_books = Request.query.filter_by(user_id=user_id, status="paid").all()
 
     requested_books_details = []
     issued_books_details = []
     paid_books_details = []
 
-    for request in requested_books:
-        book = request.book
+    for req in requested_books + rejected_books:
+        book = req.book
         section = book.section
-        status = request.status
+        status = req.status
         requested_books_details.append({
             'book_id': book.id,
             'book_title': book.name,
@@ -126,20 +152,8 @@ def user_books():
             "status": status
         })
 
-    for request in rejected_books:
-        book = request.book
-        section = book.section
-        status = request.status
-        requested_books_details.append({
-            'book_id': book.id,
-            'book_title': book.name,
-            'author': book.author,
-            'section': section.name,
-            "status": status
-        })
-
-    for request in issued_books:
-        book = request.book
+    for req in issued_books:
+        book = req.book
         section = book.section
         issued_books_details.append({
             'book_id': book.id,
@@ -148,8 +162,8 @@ def user_books():
             'section': section.name
         })
 
-    for request in paid_books:
-        book = request.book
+    for req in paid_books:
+        book = req.book
         section = book.section
         paid_books_details.append({
             'book_id': book.id,
@@ -159,8 +173,9 @@ def user_books():
         })
 
     return render_template('user_books.html', requested_books=requested_books_details, 
-                           username=username, issued_books=issued_books_details, 
-                           paid_books=paid_books_details, user_id=user_id)
+                           username=username, issued_books=issued_books_details, rejected_books= rejected_books_details,
+                           paid_books=paid_books_details, user_id=user_id, search_word=search_word)
+
 
 @app.route("/userstats", methods=["GET", "POST"])
 def user_stats():
@@ -220,13 +235,24 @@ def section_management():
 
 @app.route("/addsections", methods=["GET", "POST"])
 def add_sections():
-    sections = Section.query.all()
+    search_word = request.args.get('search_word', '')
+    
+    if search_word:
+        sections = Section.query.filter(
+            Section.name.ilike(f'%{search_word}%') |
+            Section.description.ilike(f'%{search_word}%')
+        ).all()
+    else:
+        sections = Section.query.all()
+        
     if request.method == "POST":
         section_id = request.form.get("section_id")
         if section_id:
             session['section_id'] = section_id
-            return redirect("/bookmanagement") 
-    return render_template("add_sections.html", sections=sections)
+            return redirect("/bookmanagement")
+    
+    return render_template("add_sections.html", sections=sections, search_word=search_word)
+
 
 
 
@@ -350,47 +376,63 @@ def librarian_dashboard():
 
 @app.route("/librarianbooks", methods=["GET", "POST"])
 def librarian_books():
-    
-    librarian=User.query.filter_by(role="admin" ).first()
-    requested_books = Request.query.filter_by(status="requested").all()
-    issued_books = Request.query.filter_by(status="issued").all()
-    
+    librarian = User.query.filter_by(role="admin").first()
+    search_word = request.args.get('search_word', '')
+
+    if search_word:
+        requested_books = Request.query.join(Book).join(Section).filter(
+            Request.status == 'requested',
+            (Book.name.ilike(f'%{search_word}%') | 
+             Section.name.ilike(f'%{search_word}%') |
+             User.username.ilike(f'%{search_word}%'))
+        ).all()
+        issued_books = Request.query.join(Book).join(Section).filter(
+            Request.status == 'issued',
+            (Book.name.ilike(f'%{search_word}%') | 
+             Section.name.ilike(f'%{search_word}%') |
+             User.username.ilike(f'%{search_word}%'))
+        ).all()
+    else:
+        requested_books = Request.query.filter_by(status="requested").all()
+        issued_books = Request.query.filter_by(status="issued").all()
+
     requested_books_details = []
     issued_books_details = []
 
-    for request in requested_books:
+    for req in requested_books:
+        book = req.book
+        section = book.section
+        requested_books_details.append({
+            "request_id": req.id,
+            "book_id": book.id,
+            "user": req.user_id,
+            "book_title": book.name,
+            "section": section.name
+        })
+
+    for req in issued_books:
+        book = req.book
+        section = book.section
+        issued_books_details.append({
+            "request_id": req.id,
+            "book_id": book.id,
+            "user": req.user_id,
+            "book_title": book.name,
+            "section": section.name
+        })
     
-            book = request.book
-            section = book.section
-            requested_books_details.append({
-                "request_id": request.id,
-                "book_id": book.id,
-                "user": request.user_id,
-                "book_title": book.name,
-                "section": section.name})
-    for request in issued_books:
-    
-            book = request.book
-            section = book.section
-            issued_books_details.append({
-                "request_id": request.id,
-                "book_id": book.id,
-                "user": request.user_id,
-                "book_title": book.name,
-                "section": section.name})
     return render_template('librarian_books.html', requested_books=requested_books_details,
-                           issued_books=issued_books_details, librarian=librarian)
+                           issued_books=issued_books_details, librarian=librarian, search_word=search_word)
 
-
-@app.route('/', methods=['GET', 'POST'])
-def index():
+#@app.route('/', methods=['GET', 'POST'])
+#def index():
     if request.method == 'POST':
         search_word = request.form.get('search_word', '')
         return redirect(url_for('search_results', search_word=search_word))
-    return render_template('librarian_books.html')  # Render your main dashboard template
+    return render_template('librarian_books.html')  
 
-@app.route('/search_results')
-def search_results():
+#@app.route('/search_results')
+#def search_results():
     search_word = request.args.get('search_word', '')
     
     # Perform search across relevant entities (example: User, Book, etc.)
@@ -399,7 +441,7 @@ def search_results():
     sections = Section.query.filter(Section.name.ilike(f'%{search_word}%')).all()
     requests = Request.query.filter(Request.status == 'requested').all()  # Example filter condition
     
-    return render_template('search_results.html', users=users, books=books, sections=sections, requests=requests, search_word=search_word)
+    return render_template('librarian_books.html', users=users, books=books, sections=sections, requests=requests, search_word=search_word)
 
 
 
