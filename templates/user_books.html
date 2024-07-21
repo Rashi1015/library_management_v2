@@ -15,7 +15,7 @@
                       <div class="collapse navbar-collapse" id="navbarSupportedContent">
                         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                           <li class="nav-item">
-                            <a class="nav-link" aria-current="page" href="{{ url_for('user', user_id=user_id) }}">Books</a>
+                            <a class="nav-link" aria-current="page" href="/userdashboard">Books</a>
                           </li> 
                           <li class="nav-item">
                             <a class="nav-link active" href="/userbooks">My Books</a>
@@ -41,7 +41,7 @@
                   
                   <h2 class="headings">Requested Books</h2>
                 {% if requested_books|length==0 %}
-                    <h4 class="headings"> no requested books</h4>
+                    <h10 class="headings"> No requested books</h10>
                 {% else %}
                   <table class="table">
                     <thead>
@@ -76,7 +76,7 @@
             
                 <h2 class="headings">Current Books</h2>
                 {% if issued_books|length==0 %}
-                <h3 class="headings"> no books</h3>
+                <h10 class="headings"> No books</h10>
                 {% else %}
                   <table class="table">
                     <thead>
@@ -123,7 +123,7 @@
                 
                   <h2 class="headings">Downloaded Books</h2>
                   {% if paid_books|length==0 %}
-                  <h4 class="headings"> no downloaded books</h4>
+                  <h10 class="headings"> No downloaded books</h10>
                   {% else %}
                     <table class="table">
                       <thead>
