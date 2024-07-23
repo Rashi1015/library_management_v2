@@ -42,28 +42,23 @@ def user_login():
 
     return render_template('user_login.html')
 
-@app.route('/userregister', methods=['GET', 'POST'])
+@app.route("/userregister", methods=["GET", "POST"])
 def user_register():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        # Generate a unique fs_uniquifier
-        fs_uniquifier = str(uuid.uuid4())
-        # Create the user
-        user_datastore.create_user(
-            username=username, 
-            password=hash_password(password),
-            active=True,
-            fs_uniquifier=fs_uniquifier,
-            roles=['user']  
-        )
-        db.session.commit()
-        return redirect("/userlogin")
+    if request.method=="POST":
+        username=request.form.get("username")
+        password=request.form.get("password")
+        this_user=User.query.filter_by(username=username).first()
+        if this_user:
+            return "User already exists!"
+        else:
+            new_user=User(username = username, password= password)
+            db.session.add(new_user)
+            db.session.commit()
+            return redirect("/userlogin")
     return render_template('user_register.html')
 
 
 @app.route('/userdashboard', methods=["GET", "POST"])
-#@auth_required('session', 'token')
 def user_dashboard():
     
     user_id = session.get('user_id')
@@ -225,6 +220,7 @@ def user_books():
 @app.route("/userstats", methods=["GET", "POST"])
 def user_stats():
     user_id = session.get('user_id')
+    username = session.get('username')
 
     requested_count = Request.query.filter_by(user_id=user_id, status="requested").count()
     rejected_count = Request.query.filter_by(user_id=user_id, status="rejected").count()
@@ -234,25 +230,8 @@ def user_stats():
     # Render the template with the statistics
     return render_template('user_stats.html', user_id=user_id,
                            requested_count=requested_count, rejected_count=rejected_count,
-                           issued_count=issued_count, paid_count=paid_count)
+                           issued_count=issued_count, paid_count=paid_count, username = username)
 
-
-
-
-@app.route("/userregister", methods=["GET", "POST"])
-def user_register():
-    if request.method=="POST":
-        username=request.form.get("username")
-        password=request.form.get("password")
-        this_user=User.query.filter_by(username=username).first()
-        if this_user:
-            return "User already exists!"
-        else:
-            new_user=User(username = username, password= password)
-            db.session.add(new_user)
-            db.session.commit()
-            return redirect("/userlogin")
-    return render_template('user_register.html')
 
 
 @app.route("/sectionmanagement", methods=["GET", "POST"])
@@ -280,13 +259,23 @@ def section_management():
 
 @app.route("/addsections", methods=["GET", "POST"])
 def add_sections():
-    sections = Section.query.all()
+    search_word = request.args.get('search_word', '')
+    
+    if search_word:
+        sections = Section.query.filter(
+            Section.name.ilike(f'%{search_word}%') |
+            Section.description.ilike(f'%{search_word}%')
+        ).all()
+    else:
+        sections = Section.query.all()
+        
     if request.method == "POST":
         section_id = request.form.get("section_id")
         if section_id:
             session['section_id'] = section_id
-            return redirect("/bookmanagement") 
-    return render_template("add_sections.html", sections=sections)
+            return redirect("/bookmanagement")
+    
+    return render_template("add_sections.html", sections=sections, search_word=search_word)
 
 
 
@@ -410,38 +399,53 @@ def librarian_dashboard():
 
 @app.route("/librarianbooks", methods=["GET", "POST"])
 def librarian_books():
-    
-    librarian=User.query.filter_by(role="admin" ).first()
-    requested_books = Request.query.filter_by(status="requested").all()
-    issued_books = Request.query.filter_by(status="issued").all()
-    
+    librarian = User.query.filter_by(role="admin").first()
+    search_word = request.args.get('search_word', '')
+
+    if search_word:
+        requested_books = Request.query.join(Book).join(Section).filter(
+            Request.status == 'requested',
+            (Book.name.ilike(f'%{search_word}%') | 
+             Section.name.ilike(f'%{search_word}%') |
+             User.username.ilike(f'%{search_word}%'))
+        ).all()
+        issued_books = Request.query.join(Book).join(Section).filter(
+            Request.status == 'issued',
+            (Book.name.ilike(f'%{search_word}%') | 
+             Section.name.ilike(f'%{search_word}%') |
+             User.username.ilike(f'%{search_word}%'))
+        ).all()
+    else:
+        requested_books = Request.query.filter_by(status="requested").all()
+        issued_books = Request.query.filter_by(status="issued").all()
+
     requested_books_details = []
     issued_books_details = []
 
-    for request in requested_books:
+    for req in requested_books:
+        book = req.book
+        section = book.section
+        requested_books_details.append({
+            "request_id": req.id,
+            "book_id": book.id,
+            "user": req.user_id,
+            "book_title": book.name,
+            "section": section.name
+        })
+
+    for req in issued_books:
+        book = req.book
+        section = book.section
+        issued_books_details.append({
+            "request_id": req.id,
+            "book_id": book.id,
+            "user": req.user_id,
+            "book_title": book.name,
+            "section": section.name
+        })
     
-            book = request.book
-            section = book.section
-            requested_books_details.append({
-                "request_id": request.id,
-                "book_id": book.id,
-                "user": request.user_id,
-                "book_title": book.name,
-                "section": section.name})
-    for request in issued_books:
-    
-            book = request.book
-            section = book.section
-            issued_books_details.append({
-                "request_id": request.id,
-                "book_id": book.id,
-                "user": request.user_id,
-                "book_title": book.name,
-                "section": section.name})
     return render_template('librarian_books.html', requested_books=requested_books_details,
-                           issued_books=issued_books_details, librarian=librarian)
-
-
+                           issued_books=issued_books_details, librarian=librarian, search_word=search_word)
 
 @app.route('/librariansearch')
 def text_search_L():
