@@ -447,32 +447,6 @@ def librarian_books():
     return render_template('librarian_books.html', requested_books=requested_books_details,
                            issued_books=issued_books_details, librarian=librarian, search_word=search_word)
 
-@app.route('/librariansearch')
-def text_search_L():
-    
-    search_word = request.args.get("search_word")
-    search_word = "%" + search_word + "%"
-    
-    # Search requests by book name
-    requests_by_name = Request.query \
-        .join(Book) \
-        .filter(Book.name.like(f'%{search_word}%')) \
-        .filter(or_(Request.status == 'requested', Request.status == 'issued')) \
-        .all()
-    
-    # Search requests by section name
-    requests_by_section = Request.query \
-        .join(Book) \
-        .join(Section) \
-        .filter(Section.name.like(f'%{search_word}%')) \
-        .filter(or_(Request.status == 'requested', Request.status == 'issued')) \
-        .all()
-
-    # Combine and remove duplicates
-    requests = requests_by_name + requests_by_section
-    
-    return render_template('librarian_search.html', requests=requests)
-
 
 @app.route("/librarianstats")
 def librarian_stats():
