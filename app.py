@@ -12,7 +12,7 @@ def create_app():
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///lmsdata.sqlite3"
     app.config['SECURITY_PASSWORD_SALT'] = 'super-secret-salt'
     db.init_app(app)
-    migrate=Migrate(app, db)
+    app.migrate=Migrate(app, db)
     app.security = Security(app, user_datastore)
         
     with app.app_context():
