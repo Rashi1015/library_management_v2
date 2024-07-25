@@ -10,7 +10,7 @@ def create_data(user_datastore: SQLAlchemyUserDatastore):
     print('### creating Data ###')
 
     
-    user_datastore.find_or_create_role(name = "general", description ="Regular user")
+    user_datastore.find_or_create_role(name = "user", description ="Regular user")
     user_datastore.find_or_create_role(name = "admin", description ="Administrator")
 
 

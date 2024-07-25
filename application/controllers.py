@@ -3,7 +3,7 @@ from flask import current_app as app
 from application.models import *
 import pdfkit
 from sqlalchemy import func, or_
-from flask_security import hash_password, auth_required, current_user
+from flask_security import hash_password, auth_required, roles_accepted, current_user
 import uuid
 from .sec import user_datastore
 
@@ -75,7 +75,7 @@ def user_register():
 
 
 @app.route('/userdashboard', methods=["GET", "POST"])
-#@auth_required('session', 'token')
+@auth_required('session', 'token')
 def user_dashboard():
     
     user_id = session.get('user_id')
@@ -251,6 +251,7 @@ def user_stats():
 
 
 @app.route("/sectionmanagement", methods=["GET", "POST"])
+@roles_accepted('admin')
 def section_management():
     librarian_id = session.get('librarian_id')
     sections = Section.query.all()
@@ -274,6 +275,7 @@ def section_management():
     return render_template("section_management.html", sections=sections, librarian_id=librarian_id)
 
 @app.route("/addsections", methods=["GET", "POST"])
+@roles_accepted('admin')
 def add_sections():
     search_word = request.args.get('search_word', '')
     
@@ -297,12 +299,14 @@ def add_sections():
 
 
 @app.route("/edit_section_page", methods=["GET"])
+@roles_accepted('admin')
 def edit_section_page():
     section_id = request.args.get("section_id")
     section = Section.query.get(section_id)
     return render_template("edit_section.html", section_id=section_id, section_name=section.name, description=section.description)
 
 @app.route("/update_section", methods=["POST"])
+@roles_accepted('admin')
 def update_section():
     if request.method == "POST":
         section_id = request.form.get("section_id")
@@ -315,6 +319,7 @@ def update_section():
         return redirect("/addsections")
 
 @app.route("/delete_section", methods=["POST"])
+@roles_accepted('admin')
 def delete_section():
     if request.method == "POST":
         section_id = request.form.get("section_id")
@@ -324,6 +329,7 @@ def delete_section():
         return redirect("/addsections")
 
 @app.route("/edit_book_page", methods=["GET"])
+@roles_accepted('admin')
 def edit_book_page():
     book_id = request.args.get("book_id")
     section_id = request.args.get("section_id")
