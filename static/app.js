@@ -5,10 +5,7 @@ import Navbar from "./components/Navbar.js";
 new Vue({
   el: "#app",
   template: `
-  <div>
-    <Navbar/>
-    <router-view/>
-    </div>
+  <h1> app vue </h1>
     `,
   router,
   components: {
