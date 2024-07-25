@@ -10,6 +10,10 @@ from .sec import user_datastore
 
 config = pdfkit.configuration(wkhtmltopdf=r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe')
 
+def create_view(app):
+    @app.route('/')
+    def home():
+        return render_template('index.html')
 
 @app.route('/logout')
 def logout():
