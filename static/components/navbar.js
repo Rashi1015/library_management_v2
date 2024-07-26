@@ -1,6 +1,6 @@
 import router from "../utils/router.js";
 
-const Navbar = {
+const navbar = {
     template: `<nav class="navbar navbar-expand-lg bg-body-tertiary">
                     <div class="container-fluid">
                       <a class="navbar-brand" href="#">User Dashboard</a>
@@ -34,4 +34,4 @@ const Navbar = {
     `
 }
 
-export default Navbar;
+export default navbar;
