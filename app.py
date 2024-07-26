@@ -5,6 +5,7 @@ from application.database import *
 from application.sec import user_datastore
 from flask_security import SQLAlchemyUserDatastore, Security
 
+
 def create_app():
     app = Flask(__name__)
     app.config['SECRET_KEY'] = b'_5#y2L"F4Q8z\n\xec]/'
