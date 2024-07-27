@@ -1,5 +1,5 @@
 import router from "./utils/router.js";
-import navbar from "./components/navbar.js";
+import Navbar from "./components/Navbar.js";
 
 
 new Vue({
@@ -12,7 +12,7 @@ new Vue({
   `,
   router,
   components: {
-      navbar,
+      Navbar,
   },
 });
 

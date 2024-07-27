@@ -3,11 +3,13 @@ from flask_migrate import Migrate
 from create_initial_data import create_data
 from application.database import *
 from application.sec import user_datastore
+from flask_cors import CORS
 from flask_security import SQLAlchemyUserDatastore, Security
 
 
 def create_app():
     app = Flask(__name__)
+    CORS(app)  
     app.config['SECRET_KEY'] = b'_5#y2L"F4Q8z\n\xec]/'
     #app.debug = True
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///lmsdata.sqlite3"
