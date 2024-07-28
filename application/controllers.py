@@ -15,7 +15,7 @@ config = pdfkit.configuration(wkhtmltopdf=r'C:\Program Files\wkhtmltopdf\bin\wkh
 
 
 
-    # homepage
-@app.route('/')
-def home():
-    return render_template('index.html') # entry point to vue frontend
+def create_view():
+    @app.route('/')
+    def home():
+        return render_template('index.html') # entry point to vue frontend
