@@ -1,18 +1,20 @@
-#canvas{width:80%;
-margin:auto; height:700px;}
-
-#form-body{border:1px solid grey;
-    width: 450px;
-    height: 380px;
-    margin:auto;
-    margin-top: 150px;
-    padding: 10px;
+body {
+    background: linear-gradient(to right) #f7f2f9; /* Light gray background */
+  }
+  
+  .container {
+    margin-top: 50px;
+  }
+  
+  .card {
+    background-color: #fef9f9;
+    border: 1px solid #fcfcfc;
     border-radius: 10px;
-}
-
-.headings{ font-size: 20px;
-    margin:20px ;
-    padding-left:0px;
-}
-
-
+    box-shadow: 0 4px 8px #0c0c0c1a;
+    padding: 20px;
+  }
+  
+  .card-title {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+  }
