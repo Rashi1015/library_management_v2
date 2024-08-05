@@ -1,3 +1,4 @@
+import router from "../utils/router.js";
 const user_login = {
   template: `
     <div class="container" style="margin-top: 80px;">
@@ -30,32 +31,32 @@ const user_login = {
   data() {
     return {
       username: '',
-      password: ''
+      password: '',
+      csrfToken: ''
     };
   },
   methods: {
-    login() {
-      fetch('/userlogin', {
+    async login() {
+      
+      const url = window.location.origin;
+      const res = await fetch(url + '/userlogin', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           username: this.username,
           password: this.password
         })
-      }).then(response => response.json())
-      .then(data => {
-        if (data.redirect) {
-          // Redirect to user dashboard or handle success
-          this.$router.push(data.redirect);
-        } else {
-          // Handle error
-          alert(data.error || 'Login failed. Please check your credentials and try again.');
-        }
-      }).catch(error => {
-        console.error('Error:', error);
       });
+
+      const data = await res.json();
+      if (data.redirect) {
+        this.csrfToken = data.csrf_token;
+        this.$router.push(data.redirect);
+      } else {
+        alert(data.error || 'Login failed. Please check your credentials and try again.');
+      }
     }
   }
 };

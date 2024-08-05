@@ -11,11 +11,21 @@ const Navbar = {
             <li class="nav-item">
               <router-link class="nav-link" to="/userregister">Register</router-link>
             </li>
+            <li class="nav-item">
+  
+            <a class="nav-link" :href="url">Logout</a>
+            </li>
           </ul>
         </div>
       </div>
     </nav>
-  `
+  `,
+  data(){
+    return{
+      url: window.location.origin + "/logout",
+    };
+   
+  }
 };
 
 export default Navbar;

@@ -46,7 +46,8 @@ const user_register = {
         body: JSON.stringify({
           username: this.username,
           password: this.password
-        })
+        }),
+        credentials: "same-origin",
       }).then(response => {
         if (response.ok) {
           // Redirect to login page or handle success

@@ -2,7 +2,7 @@ from .database import *
 from datetime import datetime, timedelta
 from flask_security import UserMixin, RoleMixin
 from flask_security.models import fsqla_v3 as fsq
-
+#from flask_wtf.csrf import CSRFProtect, generate_csrf
 fsq.FsModels.set_db_info(db)
 
 roles_users = db.Table('roles_users',
