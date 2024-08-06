@@ -19,7 +19,7 @@ class User(db.Model, UserMixin):
     active = db.Column(db.Boolean(), default=True)
     fs_uniquifier = db.Column(db.String(255), unique=True, nullable=False)
     roles = db.relationship('Role', secondary=roles_users, backref=db.backref('users', lazy='dynamic'))
-    #role = db.Column(db.String(20), nullable=False, default="general")  # 'admin' or 'user'
+    role = db.Column(db.String(20), nullable=False, default="user")  # 'admin' or 'user'
 
 class Role(db.Model, RoleMixin):
     id = db.Column(db.Integer(), primary_key=True)
@@ -39,9 +39,10 @@ class Book(db.Model):
     name = db.Column(db.String(100), nullable=False)
     content = db.Column(db.Text, nullable=False)
     author = db.Column(db.String(100), nullable=False)
-    date_issued= db.Column(db.DateTime, nullable=True)
+    date_issued = db.Column(db.DateTime, default=datetime.utcnow)
     section_id = db.Column(db.Integer, db.ForeignKey('section.id'), nullable=False)
     section = db.relationship('Section', backref=db.backref('books', lazy=True))
+
 
 
 

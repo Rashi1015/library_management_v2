@@ -5,7 +5,7 @@ from application.database import *
 from application.sec import user_datastore
 from flask_cors import CORS
 from flask_security import SQLAlchemyUserDatastore, Security
-import application.resources
+import resources
 
 def create_app():
     app = Flask(__name__)
@@ -29,7 +29,7 @@ def create_app():
     app.config['SECURITY_CSRF_PROTECT_MECHANISHMS'] = []   
     
     #connect flask to flask restful
-    application.resources.api.init_app(app)
+    resources.api.init_app(app)
     
     return app
 

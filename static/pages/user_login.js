@@ -52,9 +52,15 @@ const user_login = {
 
       const data = await res.json();
       if (data.redirect) {
-        this.csrfToken = data.csrf_token;
         this.$router.push(data.redirect);
-      } else {
+      }
+      if (res.ok) {
+        console.log(data);
+        sessionStorage.setItem('auth_token',data.auth_token);
+        sessionStorage.setItem('role',data.role);
+    
+      } 
+      else {
         alert(data.error || 'Login failed. Please check your credentials and try again.');
       }
     }

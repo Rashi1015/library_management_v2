@@ -1,3 +1,5 @@
+import Book from "../components/bookresource.js";
+
 const user_dashboard = {
   template: `
     <div id="main">
@@ -6,86 +8,76 @@ const user_dashboard = {
           <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" v-model="searchWord">
           <button class="btn btn-outline-info" type="submit">Search</button>
         </form>
-        <form @submit.prevent="requestBook">
-          <input type="hidden" name="user_id" :value="userId">
-          <table class="table">
-            <thead>
-              <tr>
-                <th scope="col">#</th>
-                <th scope="col">Book Title</th>
-                <th scope="col">Author</th>
-                <th scope="col">Section</th>
-                <th scope="col">Action</th>
-              </tr>
-            </thead>
-            <tbody class="table-group-divider">
-              <tr v-for="(book, index) in books" :key="book.id">
-                <th scope="row">{{ index + 1 }}</th>
-                <td>{{ book.name }}</td>
-                <td>{{ book.author }}</td>
-                <td>{{ book.section }}</td>
-                <td>
-                  <button type="button" class="btn btn-success" @click="requestBook(book.id)">Request</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </form>
+        <Book :books="books"/>
       </div>
     </div>
   `,
   data() {
     return {
-      username: '', // Fill in with the actual username data
-      userId: '', // Fill in with the actual user ID data
+      username: '',
+      userId: '',
       searchWord: '',
-      books: [] // Fill in with the actual book details data
+      books: [],
+      auth_token: sessionStorage.getItem('auth_token')
     };
+  },
+  components: {
+    Book
   },
   methods: {
     searchBooks() {
-      // Handle search logic here, possibly sending a request to your backend
-      fetch(`/userdashboard?search_word=${this.searchWord}`)
-        .then(response => response.json())
+      fetch(`/api/books?search_word=${this.searchWord}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
         .then(data => {
-          this.books = data.book_details; // Assuming the response contains a books array
+          this.books = data.books;
         })
         .catch(error => console.error('Error:', error));
     },
-    requestBook(bookId) {
-      // Handle book request logic here
-      fetch('/userdashboard', {
+    createBook(book) {
+      fetch('/api/books', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRF-Token': this.csrfToken
+          'Authorization': 'Bearer ' + this.auth_token,
         },
-        body: JSON.stringify({
-          user_id: this.userId,
-          book_id: bookId
-        })
-      }).then(response => {
-        if (response.ok) {
-          // Handle successful request
-          alert('Book requested successfully.');
-        } else {
-          // Handle error
-          alert('Failed to request book. Please try again.');
+        body: JSON.stringify(book)
+      })
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(data => {
+            throw new Error(data.message || 'Failed to create book');
+          });
         }
-      }).catch(error => {
+        return response.json();
+      })
+      .then(data => {
+        alert('Book created successfully');
+      })
+      .catch(error => {
         console.error('Error:', error);
+        alert('Error: ' + error.message);
       });
     }
   },
   mounted() {
-    // Fetch initial book details from the backend
-    fetch('/userdashboard')
-      .then(response => response.json())
-      .then(data => {
-        this.books = data.book_details; // Assuming the response contains a books array
-        this.username = data.username; // Assuming the response contains the username
-        this.userId = data.user_id; // Assuming the response contains the user ID
+    fetch('/api/books')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
       })
+      .then(data => {
+        this.books = data.books;
+        this.username = data.username;
+        this.userId = data.user_id;
+      })
+      .catch(error => console.error('Error:', error));
   }
 };
 

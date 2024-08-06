@@ -3,7 +3,7 @@ from flask import current_app as app
 from application.models import *
 import pdfkit
 from sqlalchemy import func, or_
-from flask_security import hash_password,login_user, auth_required, roles_accepted, current_user
+from flask_security import hash_password,login_user, auth_required, roles_accepted, current_user, roles_required
 import uuid
 from flask_security import SQLAlchemySessionUserDatastore
 from .sec import user_datastore
@@ -19,7 +19,7 @@ config = pdfkit.configuration(wkhtmltopdf=r'C:\Program Files\wkhtmltopdf\bin\wkh
 def create_views(app,user_datastore: SQLAlchemySessionUserDatastore ):
     @app.route('/userlogin', methods=['POST'])
     def user_login():
-        data = request.json
+        data = request.get_json()
         username = data.get("username")
         password = data.get("password")
         current_user = User.query.filter_by(username=username).first()
@@ -29,12 +29,14 @@ def create_views(app,user_datastore: SQLAlchemySessionUserDatastore ):
                 session['user_id'] = current_user.id
                 session['username'] = current_user.username
                 session['logged_in'] = True
-                csrf_token = generate_csrf()
-                session['csrf_token'] = csrf_token
+                auth_token = current_user.get_auth_token()  
+                session['auth_token'] = auth_token
+                session['role'] = current_user.role
                 
                 response = {
                     "message": "Login successful",
-                    "csrf_token": csrf_token,
+                    "auth_token": auth_token,
+                    "role" : current_user.roles[0].name,
                     "redirect": "/userdashboard" if current_user.roles[0].name != "admin" else "/librariandashboard"
                 }
                 return jsonify(response), 200
@@ -71,11 +73,6 @@ def create_views(app,user_datastore: SQLAlchemySessionUserDatastore ):
     @app.route('/')
     def home():
         return render_template('index.html')
-
-    # @app.route('/get_csrf_token', methods=['GET'])
-    # def get_csrf_token():
-    #     csrf_token = generate_csrf()
-    #     return jsonify({'csrf_token': csrf_token})
 
     @app.route('/logout')
     def logout():
