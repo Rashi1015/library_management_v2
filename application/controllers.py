@@ -9,7 +9,6 @@ from flask_security import SQLAlchemySessionUserDatastore
 from .sec import user_datastore
 from flask import jsonify
 from flask_security.utils import verify_password
-from flask_wtf.csrf import CSRFProtect, generate_csrf
 
 
 config = pdfkit.configuration(wkhtmltopdf=r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe')
@@ -29,13 +28,12 @@ def create_views(app,user_datastore: SQLAlchemySessionUserDatastore ):
                 session['user_id'] = current_user.id
                 session['username'] = current_user.username
                 session['logged_in'] = True
-                auth_token = current_user.get_auth_token()  
-                session['auth_token'] = auth_token
+                token = current_user.get_auth_token()  
                 session['role'] = current_user.role
                 
                 response = {
                     "message": "Login successful",
-                    "auth_token": auth_token,
+                    "token": token,
                     "role" : current_user.roles[0].name,
                     "redirect": "/userdashboard" if current_user.roles[0].name != "admin" else "/librariandashboard"
                 }
@@ -80,7 +78,7 @@ def create_views(app,user_datastore: SQLAlchemySessionUserDatastore ):
         return jsonify({"message": "Logged out successfully"}), 200
 
     @app.route('/userdashboard', methods=["GET", "POST"])
-    @auth_required('session', 'token')
+    @auth_required('token')
     def user_dashboard():
         user_id = session.get('user_id')
         username = session.get('username')
@@ -134,19 +132,25 @@ def create_views(app,user_datastore: SQLAlchemySessionUserDatastore ):
 
         return jsonify({"username": username, "book_details": book_details, "user_id": user_id}), 200
 
-    @app.route('/profile')
-    @auth_required('token', 'session')
-    def profile():
-        return render_template_string(
-            """
-                <h1>This is homepage</h1>
-                <p>Welcome, {{current_user.email}}</p>
-                <p>Role: {{current_user.roles[0].description}}</p>
-                <p><a href="/logout">Logout</a></p>
-            """
-        )
+    @app.route('/assign_admin', methods=['POST'])
+    @auth_required('token')
+    def assign_admin():
+        data = request.get_json()
+        user_id = data.get("user_id")
+        user = User.query.get(user_id)
+        
+        new_role_name = "admin"
+        new_role = Role.query.filter_by(name=new_role_name).first()
 
-create_views(app, user_datastore)
+        user.roles = []
+        db.session.commit()
+        user.roles.append(new_role)
+        user.role = new_role.name  # Update the role column in the User table
+        db.session.commit()
+
+        return jsonify({"message": f"Role updated to {new_role_name}"}), 200
+
+
 
 # Run your application
 if __name__ == '__main__':

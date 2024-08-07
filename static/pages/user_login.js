@@ -1,4 +1,6 @@
 import router from "../utils/router.js";
+import store from "../utils/store.js";
+
 const user_login = {
   template: `
     <div class="container" style="margin-top: 80px;">
@@ -31,8 +33,7 @@ const user_login = {
   data() {
     return {
       username: '',
-      password: '',
-      csrfToken: ''
+      password: ''
     };
   },
   methods: {
@@ -51,13 +52,17 @@ const user_login = {
       });
 
       const data = await res.json();
-      if (data.redirect) {
-        this.$router.push(data.redirect);
-      }
+      //if (data.redirect) {
+        //this.$router.push(data.redirect);
+      //}
       if (res.ok) {
+        store.commit("setLogin");
+        router.push("/userdashboard");
         console.log(data);
-        sessionStorage.setItem('auth_token',data.auth_token);
+        sessionStorage.setItem('token',data.token);
         sessionStorage.setItem('role',data.role);
+        sessionStorage.setItem("username", data.username);
+        sessionStorage.setItem("id", data.id);
     
       } 
       else {

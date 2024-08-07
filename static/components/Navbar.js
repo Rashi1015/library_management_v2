@@ -1,3 +1,5 @@
+import store from "../utils/store.js";
+
 const Navbar = {
   template: `
     <nav class="navbar navbar-expand-lg bg-body-tertiary">
@@ -6,13 +8,12 @@ const Navbar = {
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             <li class="nav-item">
-              <router-link class="nav-link active" aria-current="page" to="/userlogin">Login</router-link>
+              <router-link v-if="!loggedIn" class="nav-link active" to="/userlogin">Login</router-link>
             </li>
             <li class="nav-item">
-              <router-link class="nav-link" to="/userregister">Register</router-link>
+              <router-link v-if="!loggedIn" class="nav-link" to="/userregister">Register</router-link>
             </li>
             <li class="nav-item">
-  
             <a class="nav-link" :href="url">Logout</a>
             </li>
           </ul>
@@ -22,6 +23,7 @@ const Navbar = {
   `,
   data(){
     return{
+      loggedIn : store.state.loggedIn,
       url: window.location.origin + "/logout",
     };
    
