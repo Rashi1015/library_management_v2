@@ -1,10 +1,4 @@
 const user_login = {
-<<<<<<< HEAD
-    template: `<h1> This is userlogin </h1>`,
-  };
-  
-  export default user_login;
-=======
   template: `
     <div class="container" style="margin-top: 80px;">
       <div class="row justify-content-center">
@@ -73,4 +67,3 @@ const user_login = {
 };
 
 export default user_login;
->>>>>>> 1194a86fe7ea680446a2114b4ca44e03ec02a7f6

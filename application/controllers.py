@@ -134,17 +134,7 @@ def create_views(app,user_datastore: SQLAlchemySessionUserDatastore ):
 
         return jsonify({"username": username, "book_details": book_details, "user_id": user_id}), 200
 
-    @app.route('/profile')
-    @auth_required('token', 'session')
-    def profile():
-        return render_template_string(
-            """
-                <h1>This is homepage</h1>
-                <p>Welcome, {{current_user.email}}</p>
-                <p>Role: {{current_user.roles[0].description}}</p>
-                <p><a href="/logout">Logout</a></p>
-            """
-        )
+        
 
 create_views(app, user_datastore)
 
