@@ -2,10 +2,6 @@ from flask import request, jsonify
 from flask_restful import Resource, Api, fields, reqparse, marshal_with
 from flask_security import auth_required, current_user
 from application.models import Book as BookModel, Section, db
-import logging
-
-# Configure logging
-logging.basicConfig(level=logging.DEBUG)
 
 api = Api(prefix='/api')
 parser = reqparse.RequestParser()
@@ -30,30 +26,24 @@ books_fields = {
 }
 
 class Book(Resource):
-    @auth_required()
+    @auth_required('token')
     @marshal_with(books_fields)
     def get(self):
         all_books = BookModel.query.all()
         return all_books
     
-    @auth_required()
+    @auth_required('token')
     def post(self):
-        logging.debug(f"Headers: {request.headers}")
-        logging.debug(f"JSON Body: {request.json}")
-        try:
-            args = parser.parse_args()
-            print(args)
-            book = BookModel(
-                name=args['name'],
-                content=args['content'],
-                author=args['author'],
-                section_id=args['section_id']
-            )
-            db.session.add(book)
-            db.session.commit()
-            return {'message': 'Book created'}, 200
-        except Exception as e:
-            logging.error(f"Error creating book: {e}")
-            return {'message': 'Internal Server Error'}, 500
-
+        args = parser.parse_args()
+        print(args)
+        book = BookModel(
+            name=args.name,
+            content=args.content,
+            author=args.author,
+            section_id=args.section_id
+        )
+        db.session.add(book)
+        db.session.commit()
+        return {'message': 'Book created'}, 200
+        
 api.add_resource(Book, '/books')
