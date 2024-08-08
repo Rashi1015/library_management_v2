@@ -1,6 +1,12 @@
 import Book from "../components/bookresource.js";
 
 const user_dashboard = {
+<<<<<<< HEAD
+    template: `<h1> This is user dashboard </h1>`,
+  };
+  
+  export default user_dashboard;
+=======
   template: `
     <div id="main">
       <div id="canvas">
@@ -34,3 +40,4 @@ const user_dashboard = {
 };
 
 export default user_dashboard;
+>>>>>>> 1194a86fe7ea680446a2114b4ca44e03ec02a7f6
