@@ -132,9 +132,7 @@ def create_views(app,user_datastore: SQLAlchemySessionUserDatastore ):
 
         return jsonify({"username": username, "book_details": book_details, "user_id": user_id}), 200
 
-<<<<<<< HEAD
         
-=======
     @app.route('/assign_admin', methods=['POST'])
     @auth_required('token')
     def assign_admin():
@@ -153,7 +151,6 @@ def create_views(app,user_datastore: SQLAlchemySessionUserDatastore ):
 
         return jsonify({"message": f"Role updated to {new_role_name}"}), 200
 
->>>>>>> 4d619836fb2edae1cb5f29b2157d766151335034
 
 
 # Run your application
