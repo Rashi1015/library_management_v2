@@ -38,7 +38,6 @@ const user_login = {
   },
   methods: {
     async login() {
-      
       const url = window.location.origin;
       const res = await fetch(url + '/userlogin', {
         method: 'POST',
@@ -51,26 +50,23 @@ const user_login = {
         })
       });
 
-      
-      
       if (res.ok) {
         const data = await res.json();
-        store.commit("setLogin");
-        
-        
-        sessionStorage.setItem('token',data.token);
-        sessionStorage.setItem('role',data.role);
+        store.commit("setLogin", data.username);
+
+        sessionStorage.setItem('token', data.token);
+        sessionStorage.setItem('role', data.role);
         sessionStorage.setItem("username", data.username);
         sessionStorage.setItem("id", data.id);
 
         console.log(data);
         router.push("/userdashboard");
-    } 
-      else {
-        alert(data.error || 'Login failed. Please check your credentials and try again.');
+      } else {
+        alert('Login failed. Please check your credentials and try again.');
       }
     }
   }
 };
 
 export default user_login;
+

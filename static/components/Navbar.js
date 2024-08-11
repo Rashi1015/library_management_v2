@@ -7,29 +7,58 @@ const Navbar = {
         <a class="navbar-brand" href="#">Library Management System</a>
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-            <li class="nav-item">
-              <router-link v-if="!isLoggedIn" class="nav-link active" to="/userlogin">Login</router-link>
+            <li class="nav-item" v-if="isLoggedIn && isAdmin">
+              <router-link class="nav-link" to="/librarianbooks">Requests</router-link>
             </li>
-            <li class="nav-item">
-              <router-link v-if="!isLoggedIn" class="nav-link" to="/userregister">Register</router-link>
+            <li class="nav-item" v-if="isLoggedIn && isAdmin">
+              <router-link class="nav-link" to="/addsections">Books</router-link>
             </li>
-            <li class="nav-item">
-              <a class="nav-link" v-if="isLoggedIn" :href="url">Logout</a>
+            <li class="nav-item" v-if="isLoggedIn && !isAdmin">
+              <router-link class="nav-link" to="/userdashboard">All Books</router-link>
+            </li>
+            <li class="nav-item" v-if="isLoggedIn && !isAdmin">
+              <router-link class="nav-link" to="/userbooks">Your Books</router-link>
+            </li>
+            <li class="nav-item" v-if="!isLoggedIn && !isAdmin">
+              <router-link class="nav-link" to="/userlogin">Login</router-link>
+            </li>
+            <li class="nav-item" v-if="!isLoggedIn && !isAdmin">
+              <router-link class="nav-link" to="/userregister">Register</router-link>
+            </li>
+            <li class="nav-item" v-if="isLoggedIn">
+              <a class="nav-link" :href="url">Logout</a>
             </li>
           </ul>
+          <form v-if="isLoggedIn" class="d-flex" role="search" @submit.prevent="performSearch">
+            <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" v-model="searchQuery">
+            <button class="btn btn-outline-info" type="submit">Search</button>
+          </form>
+          <span v-if="isLoggedIn" class="navbar-text ms-2">Welcome, {{ username }}</span>
         </div>
       </div>
     </nav>
   `,
   computed: {
     isLoggedIn() {
-      return store.state.loggedIn;
+      return store.getters.isLoggedIn;
+    },
+    isAdmin() {
+      return store.getters.role === 'admin';
+    },
+    username() {
+      return store.getters.username;
     }
   },
-  data(){
-    return{
+  data() {
+    return {
       url: window.location.origin + "/logout",
+      searchQuery: "",
     };
+  },
+  methods: {
+    performSearch() {
+      this.$emit('search-performed', this.searchQuery);
+    }
   }
 };
 

@@ -35,6 +35,7 @@ def create_views(app,user_datastore: SQLAlchemySessionUserDatastore ):
                     "message": "Login successful",
                     "token": token,
                     "role" : current_user.roles[0].name,
+                    "username": current_user.username,  
                     "redirect": "/userdashboard" if current_user.roles[0].name != "admin" else "/librariandashboard"
                 }
                 return jsonify(response), 200
@@ -67,6 +68,34 @@ def create_views(app,user_datastore: SQLAlchemySessionUserDatastore ):
             print("Error:", e)  # Debugging statement to print the error
             return jsonify({"error": "User registration failed"}), 500
         
+    @app.route('/librarianlogin', methods=['POST'])
+    def librarian_login():
+        data = request.get_json()
+        username = data.get("username")
+        password = data.get("password")
+        librarian = User.query.filter_by(username=username, role='admin').first()
+
+        if librarian:
+            if verify_password(librarian.password, password):  # Assuming the password is hashed
+                session['user_id'] = librarian.id
+                session['username'] = librarian.username
+                session['logged_in'] = True
+                token = librarian.get_auth_token()  # Assuming you have a method to generate an auth token
+                session['role'] = librarian.role
+            
+                response = {
+                    "message": "Login successful",
+                    "token": token,
+                    "role": librarian.role,
+                    "username": librarian.username,
+                    "redirect": "/librariandashboard"  # Redirect to librarian dashboard after login
+                }
+                return jsonify(response), 200
+            else:
+                return jsonify({"error": "Invalid username or password"}), 401
+        else:
+            return jsonify({"error": "Invalid username or password"}), 401
+        
         
     @app.route('/')
     def home():
@@ -86,51 +115,45 @@ def create_views(app,user_datastore: SQLAlchemySessionUserDatastore ):
         if not user_id or not username:
             return jsonify({"redirect": "/userlogin", "message": "Please log in to access your dashboard."}), 403
 
-        search_word = request.args.get('search_word', '')
-        if search_word:
-            search_word = "%" + search_word + "%"
-            books_by_name = Book.query.filter(Book.name.ilike(search_word)).all()
-            books_by_author = Book.query.filter(Book.author.ilike(search_word)).all()
-            books_by_section = Book.query.join(Section).filter(Section.name.ilike(f'%{search_word}%')).all()
-            books = books_by_name + books_by_author + books_by_section
-        else:
-            books = Book.query.all()
-
-        book_details = []
-        for book in books:
-            section = book.section
-            book_details.append({
-                "id": book.id,
-                'name': book.name,
-                'author': book.author,
-                'section': section.name
-            })
-
         if request.method == "POST":
             data = request.get_json()
             book_id = data.get('book_id')
+            user_id = data.get('user_id')
             
             if not book_id:
                 return jsonify({"message": "Book ID is required."}), 400
             
-            requested_books_count = Request.query.filter_by(user_id=user_id, status='requested').count()
-            issued_books_count = Request.query.filter_by(user_id=user_id, status='issued').count()
-            total_books_count = requested_books_count + issued_books_count
-
-            if total_books_count >= 5:
-                return jsonify({"message": "You cannot have more than 5 books in requested or issued status."}), 400
-
-            new_request = Request(
-                user_id=user_id,
-                book_id=book_id,
-                request_date=datetime.utcnow(),
-                return_date=Request.get_default_return_date()
-            )
-            db.session.add(new_request)
-            db.session.commit()
+            
             return jsonify({"message": "Book request submitted successfully.", "redirect": "/userbooks"}), 201
 
-        return jsonify({"username": username, "book_details": book_details, "user_id": user_id}), 200
+        return jsonify({"username": username, "user_id": user_id}), 200
+    
+    @app.route('/librariandashboard')
+    @auth_required
+    def librarian_dashboard():
+        return jsonify({"message": "Welcome to the Librarian Dashboard"})
+
+    
+    @app.route('/userbooks', methods=["GET","POST"])
+    @auth_required('token')
+    def user_books():
+        user_id=session.get('user_id')
+        username = session.get ('username')
+        if  not user_id or not username:
+            return jsonify({"redirect": "/userlogin", "message": "Please log in to access your dashboard."}), 403
+        if request.method == "POST":
+            data = request.get_json()
+            book_id = data.get('book_id')
+            user_id - data.get('user_id')
+            
+            if not book_id:
+                return jsonify({"message": "Book ID is required."}), 400
+            
+            
+            return jsonify({"message": "Book request submitted successfully.", "redirect": "/userbooks"}), 201
+
+        return jsonify({"username": username, "user_id": user_id}), 200
+
 
         
     @app.route('/assign_admin', methods=['POST'])

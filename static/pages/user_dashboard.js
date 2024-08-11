@@ -4,17 +4,15 @@ const user_dashboard = {
   template: `
     <div id="main">
       <div id="canvas">
-        <form @submit.prevent="searchBooks" class="d-flex mb-4">
-          <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" v-model="searchWord">
-          <button class="btn btn-outline-info" type="submit">Search</button>
-        </form>
-        <Book :books="books"/>
+        <Book :books="filteredBooks" />
       </div>
     </div>
   `,
+  props: ['searchQuery'], // Receive searchQuery from app.js
   data() {
     return {
-      books : [],
+      books: [],
+      filteredBooks: [],
     };
   },
   async mounted() {
@@ -23,14 +21,34 @@ const user_dashboard = {
         "Authentication-Token": sessionStorage.getItem("token"),
       },
     });
-    console.log(res.ok);
 
     if (res.ok) {
       const data = await res.json();
       this.books = data;
+      this.filteredBooks = data; // Initially, show all books
+      this.$root.updateAllBooks(data); // Update allBooks in app.js
     }
   },
-  components: { Book },
+  watch: {
+    searchQuery: 'filterBooks' // Watch for changes in searchQuery
+  },
+  methods: {
+    filterBooks(searchQuery) {
+      if (searchQuery === "") {
+        this.filteredBooks = this.books; // Show all books if search query is empty
+      } else {
+        const lowerCaseQuery = searchQuery.toLowerCase();
+        this.filteredBooks = this.books.filter(book => {
+          return (
+            book.name.toLowerCase().includes(lowerCaseQuery) ||
+            book.author.toLowerCase().includes(lowerCaseQuery) ||
+            book.section.name.toLowerCase().includes(lowerCaseQuery)
+          );
+        });
+      }
+    }
+  },
+  components: { Book }
 };
 
 export default user_dashboard;

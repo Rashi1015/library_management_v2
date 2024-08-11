@@ -17,7 +17,7 @@ const Book = {
             <td>{{ book.name }}</td>
             <td>{{ book.author }}</td>
             <td>{{ book.section.name }}</td>
-            <td><button class="btn btn-success" type="submit">Request</button></td>
+            <td><button @click="requestBook(book.id)" class="btn btn-success" type="submit">Request</button></td>
           </tr>
         </tbody>
       </table>
@@ -29,8 +29,28 @@ const Book = {
       required: true,
     }
   },
-  data() {
-    return {};
+  methods: {
+    async requestBook(bookId) {
+      try {
+        const res = await fetch(window.location.origin + "/api/request_book", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authentication-Token": sessionStorage.getItem("token"),
+          },
+          body: JSON.stringify({ book_id: bookId }),
+        });
+
+        if (res.ok) {
+          alert('Book request submitted successfully.');
+        } else {
+          const errorData = await res.json();
+          alert(`Request failed: ${errorData.message}`);
+        }
+      } catch (error) {
+        alert(`An error occurred: ${error.message}`);
+      }
+    }
   }
 };
 
